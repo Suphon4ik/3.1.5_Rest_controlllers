@@ -1,0 +1,254 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml" xmlns:th="http://www.thymeleaf.org" lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>User List</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+</head>
+<body>
+
+
+<nav class="navbar navbar-dark bg-dark px-3">
+    <div class="container-fluid d-flex justify-content-between align-items-center">
+        <!-- Левая часть: Email и Роли -->
+        <span class="navbar-text text-white">
+<span class="fw-bold" th:text="${#authentication.name}"></span>
+with roles:
+<span th:text="${#authentication.authorities}"></span>
+</span>
+
+        <!-- Правая часть: Кнопка Logout -->
+        <a id="logoutButton" class="btn btn-outline-light" href="#">Logout</a>
+    </div>
+</nav>
+<div class="container-fluid" style="padding-top: 20px">
+    <div class="row">
+
+
+        <div class="col">
+            <div class="row">
+                <button class="btn btn-primary btn-lg btn-block text-start" onclick="window.location.href = '/admin'">
+                    Admin
+                </button>
+                <button class="btn btn-primary btn-lg btn-block text-start" onclick="window.location.href = '/user'">
+                    User
+                </button>
+            </div>
+        </div>
+
+        <div class="container-fluid col-10 bg-light" style="padding-left: 20px">
+            <div class="tab-content" id="homeTabContent">
+                <div class="tab-pane fade show active" id="admin" role="tabpanel" aria-labelledby="admin-tab">
+
+                    <h1>Admin panel</h1>
+
+                    <nav>
+                        <div class="nav nav-tabs" id="nav-tab" role="tablist">
+                            <button class="nav-link active" id="usersTable-tab" data-bs-toggle="tab"
+                                    data-bs-target="#usersTable" type="button" role="tab"
+                                    aria-controls="usersTable" aria-selected="true">Users table
+                            </button>
+                            <button class="nav-link" id="newUser-tab" data-bs-toggle="tab"
+                                    data-bs-target="#newUser" type="button" role="tab" aria-controls="newUser"
+                                    aria-selected="false">New User
+                            </button>
+                        </div>
+                    </nav>
+
+
+                    <div class="tab-content">
+
+                        <div class="tab-pane fade show active" id="usersTable" role="tabpanel"
+                             aria-labelledby="usersTable-tab">
+                            <div class="card">
+                                <div class="card-header">
+                                    <h3 class="card-title">All users</h3>
+                                </div>
+
+
+                                <div class="container mt-4">
+                                    <h1 class="text-center">User List</h1>
+
+                                    <!-- Блок для отображения сообщения об ошибке -->
+                                    <div th:if="${error}" class="alert alert-danger" role="alert"
+                                         th:text="${error}"></div>
+
+                                    <!-- Блок для отображения успешного сообщения -->
+                                    <div th:if="${message}" class="alert alert-success" role="alert"
+                                         th:text="${message}"></div>
+
+                                    <table  id="userTable" class="table table-striped table-bordered text-center">
+
+                                        <thead>
+                                        <tr>
+                                            <th>Id</th>
+                                            <th>Name</th>
+                                            <th>Country</th>
+                                            <th>Car</th>
+                                            <th>Role</th>
+                                            <th>Password</th>
+                                            <th>Update</th>
+                                            <th>Delete</th>
+                                        </tr>
+                                        </thead>
+                                        <tbody>
+
+                                        </tbody>
+                                    </table>
+                                </div>
+                            </div>
+                        </div>
+
+
+                        <!-- Добавляем нового пользователя -->
+
+                        <div class="tab-pane fade" id="newUser" role="tabpanel" aria-labelledby="newUser-tab">
+                            <div class="card">
+                                <div class="card-header">
+                                    <h2 class="text-title">Add new</h2>
+                                </div>
+
+                                <form id="createUserForm">
+                                    <input type="hidden" name="id" id="newId"/>
+
+                                    <div class="d-flex flex-column align-items-center">
+                                        <div class="mb-3">
+                                            <label for="newUsername" class="form-label fw-bold text-center w-100">Username</label>
+                                            <input type="text" id="newUsername" class="form-control" name="username"/>
+                                        </div>
+
+                                        <div class="mb-3">
+                                            <label for="newCountry" class="form-label fw-bold text-center w-100">Country</label>
+                                            <input type="text" class="form-control" name="country" id="newCountry"/>
+                                        </div>
+
+                                        <div class="mb-3">
+                                            <label for="newCar" class="form-label fw-bold text-center w-100">Car</label>
+                                            <input type="text" class="form-control" name="car" id="newCar"/>
+                                        </div>
+
+                                        <div class="mb-3 col-md-2 text-center">
+                                            <label class="form-label" for="roleNew"><b>Role</b></label>
+                                            <select id="roleNew" name="roles" class="form-control w-100" multiple size="2">
+                                                <option value="2">ADMIN</option>
+                                                <option value="1">USER</option>
+                                            </select>
+                                        </div>
+
+                                        <div class="mb-3">
+                                            <label for="newPassword" class="form-label fw-bold text-center w-100">Password</label>
+                                            <input type="password" class="form-control" name="password" id="newPassword"/>
+                                        </div>
+                                    </div>
+                                    <div class="text-center">
+                                        <button type="button" class="btn btn-primary" id="createUserBtn">Add new</button>
+                                    </div>
+                                </form>
+                            </div>
+                        </div>
+
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Модальное окно для обновления пользователя -->
+
+<div id="updateModal" class="modal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Update User</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+
+            <div class="modal-body">
+                <div class="mb-3">
+                    <label for="UpdateUsername" class="form-label">Username</label>
+                    <input type="text" class="form-control" id="UpdateUsername" data-id="${user.id}"  name="username">
+                </div>
+
+                <div class="mb-3">
+                    <label for="UpdateCountry" class="form-label">Country</label>
+                    <input type="text" class="form-control" id="UpdateCountry"  name="country">
+                </div>
+
+                <div class="mb-3">
+                    <label for="UpdateCar" class="form-label">Car</label>
+                    <input type="text" class="form-control" id="UpdateCar"  name="car">
+                </div>
+                <div class="mb-3">
+                    <label for="roleSelect" class="form-label">Role</label>
+                    <select id="roleSelect" class="form-control" multiple>
+                        <option value="2">Admin</option>
+                        <option value="1">User</option>
+                    </select>
+                </div>
+                <div class="mb-3">
+                    <label for="UpdatePassword" class="form-label">Password</label>
+                    <input type="password" class="form-control" id="UpdatePassword"  name="password">
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                <button type="button" class="btn btn-primary" onclick="updateUser()">Save changes</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+
+<!-- Модальное окно для удаления пользователя -->
+<div th:each="user : ${users}" th:id="'deleteModal-' + ${user.id}" class="modal fade" tabindex="-1"
+     aria-labelledby="deleteModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Delete User</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <form th:action="@{/admin/delete}" method="post">
+                    <input type="hidden" name="id" th:value="${user.id}"/>
+
+                    <div class="mb-3 text-center">
+                        <label for="DeleteUsername" class="form-label" style="font-weight: bold;">Username</label>
+                        <input id="DeleteUsername" type="text" class="form-control" th:value="${user.username}" readonly/>
+                    </div>
+
+                    <div class="mb-3 text-center">
+                        <label for="DeleteCountry" class="form-label" style="font-weight: bold;">Country</label>
+                        <input  id="DeleteCountry" type="text" class="form-control" th:value="${user.country}" readonly/>
+                    </div>
+
+                    <div class="mb-3 text-center">
+                        <label  for="DeleteCar" class="form-label" style="font-weight: bold;">Car</label>
+                        <input  id="DeleteCar" type="text" class="form-control" th:value="${user.car}" readonly/>
+                    </div>
+
+                    <div class="mb-3 text-center">
+                        <label for="DeleteRole" class="form-label" style="font-weight: bold;">Role</label>
+                        <input id="DeleteRole" type="text" class="form-control" th:value="${user.roles}" readonly/>
+                    </div>
+
+                    <div class="mb-3 text-center">
+                        <label  for="DeletePassword" class="form-label" style="font-weight: bold;">Password</label>
+                        <input  id="DeletePassword" type="password" class="form-control" placeholder="password is hidden" readonly/>
+                    </div>
+
+                    <div class="text-center">
+                        <button type="submit" class="btn btn-danger">Delete</button>
+                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Back</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+<script src="/js/admin.js"></script>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>
