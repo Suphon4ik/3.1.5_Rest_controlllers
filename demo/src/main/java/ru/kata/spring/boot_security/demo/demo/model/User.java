@@ -1,7 +1,5 @@
 package ru.kata.spring.boot_security.demo.demo.model;
 
-
-
 import jakarta.persistence.CascadeType;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;

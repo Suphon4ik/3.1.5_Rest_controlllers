@@ -34,23 +34,23 @@ public class DataInitializer {
                 .orElseGet(() -> roleRepository
                         .save(new Role("ROLE_ADMIN")));
 
-        if (userRepository.findByUsername("admin").isEmpty()) {
+        if (userRepository.findByUsername("admin") == null) {
             User admin = new User();
             admin.setUsername("admin");
             admin.setPassword(passwordEncoder.encode("admin123"));
             admin.setRoles(Set.of(adminRole, userRole));
             admin.setCar("Lada Vesta");
             admin.setCountry("United States");
-            userRepository.save(admin);
+            userRepository.saveUser(admin);
         }
-        if (userRepository.findByUsername("user").isEmpty()) {
+        if (userRepository.findByUsername("user") == null) {
             User user = new User();
             user.setUsername("user");
             user.setPassword(passwordEncoder.encode("user123"));
             user.setRoles(Set.of(userRole));
             user.setCar("Lada Granta");
             user.setCountry("Germany");
-            userRepository.save(user);
+            userRepository.saveUser(user);
         }
     }
 }

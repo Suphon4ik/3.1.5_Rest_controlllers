@@ -13,7 +13,7 @@ public interface UserService {
 
     List<User> getAllUsers();
 
-    void saveUser(User user, BindingResult bindingResult);
+    void saveUser(User user);
 
     void deleteUser(Long id);
 

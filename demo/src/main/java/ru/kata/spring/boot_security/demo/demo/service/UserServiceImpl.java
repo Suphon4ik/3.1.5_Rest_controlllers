@@ -29,41 +29,35 @@ public class UserServiceImpl implements UserService {
     @Transactional
     @Override
     public User getUserById(Long id) {
-        return userRepository.findById(id)
-                .orElseThrow(() -> new RuntimeException(
-                        "Пользователь с  id "  + id + " не найден (это сообщение из сервиса)"
-                ));
+        User user = userRepository.getUserById(id);
+        if (user == null) {
+            throw new IllegalStateException("User with id " + id + " not found");
+        }
+        return user;
     }
 
     @Transactional
     @Override
     public User findByUsername(String name) {
-        return userRepository.findByUsername(name).orElseThrow(() -> new IllegalStateException(
-                "Пользователь с именем " + name + " не найден"
-        ));
+        User user = userRepository.findByUsername(name);
+        if (user == null) {
+            throw new IllegalStateException("User with name " + name + " not found");
+        }
+        return user;
     }
 
     @Transactional
     @Override
     public List<User> getAllUsers() {
-        return userRepository.findAll();
+        return userRepository.getAllUsers();
     }
 
     @Transactional
     @Override
-    public void saveUser(User user, BindingResult bindingResult) {
-
-        if (bindingResult.hasErrors()) {
-            throw new IllegalStateException("Ошибка валидации данных пользователя: " +
-                    bindingResult
-                            .getAllErrors()
-                            .stream()
-                            .map(ObjectError::getDefaultMessage)
-                            .collect(Collectors.joining(", ")));
-        }
+    public void saveUser(User user) {
 
         //проверка на уникальность имени
-        if (userRepository.findByUsername(user.getUsername()).isPresent()) {
+        if (userRepository.findByUsername(user.getUsername()) != null) {
             throw new IllegalStateException("Ошибка, пользователь " + user.getUsername()
                     + " уже существует");
         }
@@ -71,7 +65,7 @@ public class UserServiceImpl implements UserService {
         //Кодирование пароля
         if (user.getPassword() != null && !user.getPassword().isEmpty()) {
             user.setPassword(passwordEncoder.encode(user.getPassword()));
-            userRepository.save(user);
+            userRepository.saveUser(user);
         } else {
             throw new IllegalStateException("Пароль не может быть пустым");
         }
@@ -80,13 +74,14 @@ public class UserServiceImpl implements UserService {
     @Transactional
     @Override
     public void deleteUser(Long id) {
-        User user = userRepository.findById(id)
-                .orElseThrow(() -> new IllegalStateException("Пользователь с id " + id
-                        + " не найден"));
+        User user = userRepository.getUserById(id);
+        if (user == null) {
+            throw new IllegalStateException("User with id " + id + " not found");
+        }
         if (user.getRoles().stream().anyMatch(role -> role.getName().equals("ROLE_ADMIN"))) {
             throw new IllegalStateException("Нельзя удалить администратора!");
         }
-        userRepository.delete(user);
+        userRepository.deleteUser(id);
     }
 
     @Transactional
@@ -101,8 +96,10 @@ public class UserServiceImpl implements UserService {
                             .collect(Collectors.joining(", ")));
         }
 
-        User existingUser = userRepository.findById(id)
-                .orElseThrow(() -> new IllegalStateException("User with id " + id + " not found"));
+        User existingUser = userRepository.getUserById(id);
+        if (existingUser != null) {
+            return;
+        }
 
         //проверка на администратора
         boolean isAdmin = existingUser.getRoles().stream()
@@ -135,7 +132,7 @@ public class UserServiceImpl implements UserService {
             }
             existingUser.setRoles(new HashSet<>(roles));
         }
-        userRepository.save(existingUser);
+        userRepository.saveUser(existingUser);
     }
 }
 

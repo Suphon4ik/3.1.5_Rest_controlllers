@@ -47,7 +47,7 @@ public class AdminRestController {
     @PostMapping("/new")
     @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<User> createUser(@RequestBody User user, BindingResult bindingResult) {
-        userService.saveUser(user, bindingResult);
+        userService.saveUser(user);
         return ResponseEntity.status(HttpStatus.CREATED).body(user);
 
     }
