@@ -1,6 +1,5 @@
 package ru.kata.spring.boot_security.demo.demo.controllers;
 
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
@@ -17,15 +16,13 @@ import java.util.List;
 import java.util.Map;
 
 @RestController
-@RequestMapping("/api")
-public class RestControler {
+@RequestMapping("/api/admin")
+public class AdminRestController {
 
     private final UserService userService;
     private final RoleService roleService;
 
-
-    @Autowired
-    public RestControler(UserService userService, RoleService roleService) {
+    public AdminRestController(UserService userService, RoleService roleService) {
         this.userService = userService;
         this.roleService = roleService;
     }
@@ -36,26 +33,21 @@ public class RestControler {
         return ResponseEntity.ok(user);
     }
 
-    @GetMapping("/admin")
+    @GetMapping("/users")
     public List<User> showAllUser() {
         return userService.getAllUsers();
     }
 
-    @GetMapping("/admin/{id}")
+    @GetMapping("/{id}")
     public ResponseEntity<?> getUser(@PathVariable long id) {
         User user = userService.getUserById(id);
-        if (user == null) {
-            return ResponseEntity.status(HttpStatus.NOT_FOUND)
-                    .body("Пользователь с ID " + id + " не найден");
-        }
         return ResponseEntity.ok(user); // 200 OK + JSON
     }
 
-    @PostMapping("/admin/new")
+    @PostMapping("/new")
     @PreAuthorize("hasRole('ADMIN')")
-    public ResponseEntity<User> createUser(@RequestBody User user) {
-        System.out.println("Received User: " + user);  // Логируем, что приходит в запросе
-        userService.saveUser(user);
+    public ResponseEntity<User> createUser(@RequestBody User user, BindingResult bindingResult) {
+        userService.saveUser(user, bindingResult);
         return ResponseEntity.status(HttpStatus.CREATED).body(user);
 
     }
@@ -64,10 +56,6 @@ public class RestControler {
     @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<?> getEditUserForm(@PathVariable("id") long id) {
         User user = userService.getUserById(id);
-        if (user == null) {
-            return ResponseEntity.status(HttpStatus.NOT_FOUND)
-                    .body("Пользователь с ID " + id + " не найден");
-        }
         List<Role> roles = roleService.getAllRoles();
 
         Map<String, Object> response = new HashMap<>();
@@ -78,7 +66,7 @@ public class RestControler {
     }
 
     // Обновить пользователя
-    @PostMapping("/admin/update/{id}")
+    @PostMapping("/update/{id}")
     @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<?> updateUser(@PathVariable("id") long id,
                                         @RequestBody User user, // Получаем данные пользователя, включая роли
@@ -88,18 +76,16 @@ public class RestControler {
         }
 
         try {
-            System.out.println("Updated roles: " + user.getRolesIds()); // Печатаем роли для отладки
-            userService.updateUser(id, user, user.getRolesIds()); // Передаем роли, полученные из тела запроса
+            userService.updateUser(id, user,bindingResult , user.getRolesIds()); // Передаем роли, полученные из тела запроса
             return ResponseEntity.ok("Пользователь успешно обновлён!");
         } catch (IllegalStateException e) {
             return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(e.getMessage());
         }
     }
 
-    @DeleteMapping("/admin/delete/{id}")
+    @DeleteMapping("/delete/{id}")
     @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<?> deleteUser(@PathVariable("id") Long id) {
-        System.out.println("Deleting user with id: " + id);
         try {
             userService.deleteUser(id);
             return ResponseEntity.ok("Пользователь успешно удалён!");

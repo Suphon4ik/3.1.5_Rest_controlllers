@@ -1,5 +1,6 @@
 package ru.kata.spring.boot_security.demo.demo.service;
 
+import org.springframework.validation.BindingResult;
 import ru.kata.spring.boot_security.demo.demo.model.User;
 
 import java.util.List;
@@ -12,11 +13,11 @@ public interface UserService {
 
     List<User> getAllUsers();
 
-    void saveUser(User user);
+    void saveUser(User user, BindingResult bindingResult);
 
     void deleteUser(Long id);
 
-    void updateUser(Long id, User user,List<Long> roleIds);
+    void updateUser(Long id, User user, BindingResult bindingResult, List<Long> roleIds);
 }
 
 

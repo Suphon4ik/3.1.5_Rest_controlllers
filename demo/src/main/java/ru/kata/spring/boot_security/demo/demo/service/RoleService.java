@@ -16,6 +16,5 @@ public interface RoleService {
 
     public List<Role> findRolesByIds(List<Long> roleIds);
 
-
 }
 

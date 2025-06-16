@@ -6,7 +6,7 @@ document.addEventListener("DOMContentLoaded", function () {
 
 
 function loadUsers() {
-    fetch("/api/admin")
+    fetch("/api/admin/users")
         .then(response => response.json())
         .then(users => {
             const tbody = document.querySelector("#userTable tbody");
