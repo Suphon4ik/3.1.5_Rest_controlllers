@@ -90,7 +90,7 @@ public class UserServiceImpl implements UserService {
     @Transactional
     @Override
     public void updateUser(Long id, User user, BindingResult bindingResult, List<Long> roleIds) {
-
+        // Проверка валидности данных
         if (bindingResult.hasErrors()) {
             throw new IllegalStateException("Ошибка валидации данных пользователя: " +
                     bindingResult.getAllErrors()
@@ -99,49 +99,50 @@ public class UserServiceImpl implements UserService {
                             .collect(Collectors.joining(", ")));
         }
 
+        // Проверка на существование пользователя
         User existingUser = userRepository.getUserById(id);
-        if (existingUser != null) {
-            return;
+        if (existingUser == null) {
+            throw new IllegalStateException("Пользователь с ID " + id + " не найден");
         }
 
         // Проверка на уникальность имени пользователя
         User userByUsername = userRepository.findByUsername(user.getUsername());
         if (userByUsername != null && !userByUsername.getId().equals(id)) {
-            return;
+            throw new IllegalStateException("Пользователь с таким именем уже существует");
         }
 
-        //проверка на администратора
+        // Проверка на администратора
         boolean isAdmin = existingUser.getRoles().stream()
                 .anyMatch(role -> role.getName().equals("ROLE_ADMIN"))
                 && existingUser.getUsername().equals("admin");
-
 
         if (isAdmin) {
             throw new IllegalStateException("Нельзя изменить администратора!");
         }
 
         // Копирование всех свойств из переданного объекта user в existingUser
-        BeanUtils.copyProperties(user, existingUser, "id", "password", "roles");
-        // Исключаем поля, которые обрабатываются отдельно
+        BeanUtils.copyProperties(user, existingUser, "id", "password", "roles"); // Исключаем поля, которые обрабатываются отдельно
 
-        //Обновление пароля, если он не пустой и не равен null
+        // Обновление пароля, если он не пустой и не равен null
         if (user.getPassword() != null && !user.getPassword().trim().isEmpty()) {
             if (!passwordEncoder.matches(user.getPassword(), existingUser.getPassword())) {
                 existingUser.setPassword(passwordEncoder.encode(user.getPassword()));
             }
         }
 
-        //обновление ролей
+        // Обновление ролей, если они переданы
         if (roleIds != null && !roleIds.isEmpty()) {
             List<Role> roles = roleRepository.findRolesByIds(roleIds);
-
             if (roles.isEmpty()) {
                 throw new IllegalStateException("Указанные роли не найдены!");
             }
             existingUser.setRoles(new HashSet<>(roles));
         }
-        userRepository.saveUser(user);
+
+        // Сохранение обновленного пользователя
+        userRepository.saveUser(existingUser); // Сохраняем existingUser, а не user
     }
+
 
     @Transactional
     @Override
