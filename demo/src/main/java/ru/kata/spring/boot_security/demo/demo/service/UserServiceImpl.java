@@ -1,5 +1,6 @@
 package ru.kata.spring.boot_security.demo.demo.service;
 
+import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
@@ -8,22 +9,24 @@ import org.springframework.validation.BindingResult;
 import org.springframework.validation.ObjectError;
 import ru.kata.spring.boot_security.demo.demo.model.Role;
 import ru.kata.spring.boot_security.demo.demo.model.User;
+import ru.kata.spring.boot_security.demo.demo.repositories.RoleRepository;
 import ru.kata.spring.boot_security.demo.demo.repositories.UserRepository;
 
 import java.util.HashSet;
 import java.util.List;
+import java.util.Map;
 import java.util.stream.Collectors;
 
 @Service
 public class UserServiceImpl implements UserService {
     private final UserRepository userRepository;
     private final PasswordEncoder passwordEncoder;
-    private final RoleService roleService;
+    private final RoleRepository roleRepository;
 
-    public UserServiceImpl(UserRepository userRepository, PasswordEncoder passwordEncoder, RoleService roleService) {
+    public UserServiceImpl(UserRepository userRepository, PasswordEncoder passwordEncoder, RoleRepository roleRepository) {
         this.userRepository = userRepository;
         this.passwordEncoder = passwordEncoder;
-        this.roleService = roleService;
+        this.roleRepository = roleRepository;
     }
 
     @Transactional
@@ -101,6 +104,12 @@ public class UserServiceImpl implements UserService {
             return;
         }
 
+        // Проверка на уникальность имени пользователя
+        User userByUsername = userRepository.findByUsername(user.getUsername());
+        if (userByUsername != null && !userByUsername.getId().equals(id)) {
+            return;
+        }
+
         //проверка на администратора
         boolean isAdmin = existingUser.getRoles().stream()
                 .anyMatch(role -> role.getName().equals("ROLE_ADMIN"))
@@ -111,10 +120,9 @@ public class UserServiceImpl implements UserService {
             throw new IllegalStateException("Нельзя изменить администратора!");
         }
 
-        //обновление данных пользователя
-        existingUser.setUsername(user.getUsername());
-        existingUser.setCountry(user.getCountry());
-        existingUser.setCar(user.getCar());
+        // Копирование всех свойств из переданного объекта user в existingUser
+        BeanUtils.copyProperties(user, existingUser, "id", "password", "roles");
+        // Исключаем поля, которые обрабатываются отдельно
 
         //Обновление пароля, если он не пустой и не равен null
         if (user.getPassword() != null && !user.getPassword().trim().isEmpty()) {
@@ -125,14 +133,20 @@ public class UserServiceImpl implements UserService {
 
         //обновление ролей
         if (roleIds != null && !roleIds.isEmpty()) {
-            List<Role> roles = roleService.findRolesByIds(roleIds);
+            List<Role> roles = roleRepository.findRolesByIds(roleIds);
 
             if (roles.isEmpty()) {
                 throw new IllegalStateException("Указанные роли не найдены!");
             }
             existingUser.setRoles(new HashSet<>(roles));
         }
-        userRepository.saveUser(existingUser);
+        userRepository.saveUser(user);
+    }
+
+    @Transactional
+    @Override
+    public Map<String, Object> getUserWithRolesForEdit(long id) {
+        return userRepository.getUserWithRolesForEdit(id);
     }
 }
 

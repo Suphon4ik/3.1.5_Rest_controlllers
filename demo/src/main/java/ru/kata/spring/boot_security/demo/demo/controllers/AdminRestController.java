@@ -55,14 +55,8 @@ public class AdminRestController {
     @GetMapping("/update/{id}")
     @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<?> getEditUserForm(@PathVariable("id") long id) {
-        User user = userService.getUserById(id);
-        List<Role> roles = roleService.getAllRoles();
 
-        Map<String, Object> response = new HashMap<>();
-        response.put("user", user);
-        response.put("roles", roles);
-
-        return ResponseEntity.ok(response);
+        return ResponseEntity.ok(userService.getUserWithRolesForEdit(id));
     }
 
     // Обновить пользователя
@@ -74,7 +68,6 @@ public class AdminRestController {
         if (bindingResult.hasErrors()) {
             return ResponseEntity.badRequest().body("Ошибка валидации данных пользователя");
         }
-
         try {
             userService.updateUser(id, user,bindingResult , user.getRolesIds()); // Передаем роли, полученные из тела запроса
             return ResponseEntity.ok("Пользователь успешно обновлён!");

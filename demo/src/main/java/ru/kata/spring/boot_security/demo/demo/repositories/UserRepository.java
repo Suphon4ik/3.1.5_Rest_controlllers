@@ -5,6 +5,7 @@ import org.springframework.validation.BindingResult;
 import ru.kata.spring.boot_security.demo.demo.model.User;
 
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 
 public interface UserRepository {
@@ -19,4 +20,6 @@ public interface UserRepository {
     void deleteUser(Long id);
 
     void updateUser(Long id, User user, BindingResult bindingResult, List<Long> roleIds);
+
+    Map<String, Object> getUserWithRolesForEdit(long id);
 }

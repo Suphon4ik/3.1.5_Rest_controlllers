@@ -10,11 +10,19 @@ import org.springframework.validation.ObjectError;
 import ru.kata.spring.boot_security.demo.demo.model.Role;
 import ru.kata.spring.boot_security.demo.demo.model.User;
 
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 
 @Repository
 public class UserRepositoryImpl implements UserRepository {
+
+    private final RoleRepository roleRepository;
+
+    public UserRepositoryImpl(RoleRepository roleRepository) {
+        this.roleRepository = roleRepository;
+    }
 
     @PersistenceContext
     private EntityManager entityManager;
@@ -27,7 +35,8 @@ public class UserRepositoryImpl implements UserRepository {
     @Override
     public User findByUsername(String name) {
         try {
-            return entityManager.createQuery("SELECT u FROM User u WHERE u.username=:name",
+            return entityManager.createQuery("SELECT u FROM User u join fetch u.roles " +
+                                    "WHERE u.username=:name",
                     User.class)
                     .setParameter("name", name)
                     .getSingleResult();
@@ -73,21 +82,23 @@ public class UserRepositoryImpl implements UserRepository {
             return;
         }
 
-        User managedUser = entityManager.find(User.class, id);
-        if (managedUser != null) {
-            managedUser.setUsername(user.getUsername());
-            managedUser.setPassword(user.getPassword());
-            managedUser.setCountry(user.getCountry());
-            managedUser.setCar(user.getCar());
+        user.setId(id);
+        entityManager.merge(user);
 
-            //устанавливаем роли
-            if (roleIds != null && !roleIds.isEmpty()) {
-                List<Role> roles = entityManager.createQuery("SELECT r FROM Role r WHERE " +
-                        "r.id IN :ids", Role.class).setParameter("ids", roleIds)
-                        .getResultList();
-                managedUser.setRoles((Set<Role>) roles);
-            }
-            entityManager.merge(managedUser);
+    }
+
+    @Override
+    public Map<String, Object> getUserWithRolesForEdit(long id) {
+        User user = entityManager.find(User.class, id);
+        if (user == null) {
+            throw new IllegalStateException("User with id " + id + " not found");
         }
+        List<Role> roles = roleRepository.getAllRoles();
+
+        Map<String, Object> response = new HashMap<>();
+        response.put("user", user);
+        response.put("roles", roles);
+
+        return response;
     }
 }
