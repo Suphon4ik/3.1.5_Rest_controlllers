@@ -21,12 +21,12 @@ import java.util.stream.Collectors;
 public class UserServiceImpl implements UserService {
     private final UserRepository userRepository;
     private final PasswordEncoder passwordEncoder;
-    private final RoleRepository roleRepository;
+    private final RoleService roleService;
 
-    public UserServiceImpl(UserRepository userRepository, PasswordEncoder passwordEncoder, RoleRepository roleRepository) {
+    public UserServiceImpl(UserRepository userRepository, PasswordEncoder passwordEncoder, RoleService roleService) {
         this.userRepository = userRepository;
         this.passwordEncoder = passwordEncoder;
-        this.roleRepository = roleRepository;
+        this.roleService = roleService;
     }
 
     @Transactional
@@ -121,7 +121,8 @@ public class UserServiceImpl implements UserService {
         }
 
         // Копирование всех свойств из переданного объекта user в existingUser
-        BeanUtils.copyProperties(user, existingUser, "id", "password", "roles"); // Исключаем поля, которые обрабатываются отдельно
+        BeanUtils.copyProperties(user, existingUser, "id", "password", "roles");
+        // Исключаем поля, которые обрабатываются отдельно
 
         // Обновление пароля, если он не пустой и не равен null
         if (user.getPassword() != null && !user.getPassword().trim().isEmpty()) {
@@ -132,7 +133,7 @@ public class UserServiceImpl implements UserService {
 
         // Обновление ролей, если они переданы
         if (roleIds != null && !roleIds.isEmpty()) {
-            List<Role> roles = roleRepository.findRolesByIds(roleIds);
+            List<Role> roles = roleService.findRolesByIds(roleIds);
             if (roles.isEmpty()) {
                 throw new IllegalStateException("Указанные роли не найдены!");
             }

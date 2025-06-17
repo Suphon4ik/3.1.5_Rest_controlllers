@@ -12,7 +12,6 @@ import jakarta.persistence.JoinTable;
 import jakarta.persistence.ManyToMany;
 import jakarta.persistence.Table;
 import jakarta.validation.constraints.NotBlank;
-import jakarta.validation.constraints.NotNull;
 import org.springframework.security.core.userdetails.UserDetails;
 
 import java.util.HashSet;
@@ -44,6 +43,17 @@ public class User implements UserDetails {
 
     @Column(nullable = false)
     private String password;
+
+    @ManyToMany(fetch = FetchType.LAZY, cascade = {CascadeType.DETACH, CascadeType.MERGE}) //
+    @JoinTable(
+            name = "user_roles",
+            joinColumns = @JoinColumn(name = "user_id"),
+            inverseJoinColumns = @JoinColumn(name = "role_id")
+    )
+    private Set<Role> roles = new HashSet<>();
+
+    public User() {
+    }
 
     public List<Long> getRolesIds() {
         return roles.stream().map(Role::getId).collect(Collectors.toList());
@@ -88,18 +98,6 @@ public class User implements UserDetails {
     public void setCar(String car) {
         this.car = car;
     }
-
-    public User() {
-    }
-
-
-    @ManyToMany(fetch = FetchType.LAZY, cascade = {CascadeType.DETACH, CascadeType.MERGE}) //
-    @JoinTable(
-            name = "user_roles",
-            joinColumns = @JoinColumn(name = "user_id"),
-            inverseJoinColumns = @JoinColumn(name = "role_id")
-    )
-    private Set<Role> roles = new HashSet<>();
 
     @Override
     public Set<Role> getAuthorities() {
@@ -148,6 +146,18 @@ public class User implements UserDetails {
     @Override
     public int hashCode() {
         return Objects.hash(id, username, country, car, password, roles);
+    }
+
+    @Override
+    public String toString() {
+        return "User{" +
+                "id=" + id +
+                ", username='" + username + '\'' +
+                ", country='" + country + '\'' +
+                ", car='" + car + '\'' +
+                ", password='" + password + '\'' +
+                ", roles=" + roles +
+                '}';
     }
 }
 

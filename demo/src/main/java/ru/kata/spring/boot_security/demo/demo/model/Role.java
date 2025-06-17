@@ -14,10 +14,6 @@ import java.util.Objects;
 @Table(name = "roles")
 public class Role implements GrantedAuthority {
 
-    public Role(String name) {
-        this.name = name;
-    }
-
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
@@ -28,6 +24,11 @@ public class Role implements GrantedAuthority {
     public Role() {
 
     }
+
+    public Role(String name) {
+        this.name = name;
+    }
+
 
     public Long getId() {
         return id;
@@ -46,14 +47,10 @@ public class Role implements GrantedAuthority {
     }
 
     @Override
-    public String toString() {
-        return  name;
-    }
-
-    @Override
     public String getAuthority() {
         return name;
     }
+
 
     @Override
     public boolean equals(Object o) {
@@ -67,4 +64,10 @@ public class Role implements GrantedAuthority {
     public int hashCode() {
         return Objects.hash(id, name);
     }
+
+    @Override
+    public String toString() {
+        return  name;
+    }
+
 }
