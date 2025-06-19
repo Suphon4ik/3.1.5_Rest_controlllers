@@ -36,7 +36,6 @@ public class User implements UserDetails {
     @Column(name = "country")
     private String country;
 
-
     @NotBlank(message = "Поле не может быть пустым")
     @Column(name = "car")
     private String car;

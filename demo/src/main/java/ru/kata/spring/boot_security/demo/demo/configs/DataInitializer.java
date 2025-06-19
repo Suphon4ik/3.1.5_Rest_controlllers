@@ -10,6 +10,7 @@ import ru.kata.spring.boot_security.demo.demo.repositories.RoleRepository;
 import ru.kata.spring.boot_security.demo.demo.repositories.UserRepository;
 
 import java.util.Set;
+
 @Configuration
 public class DataInitializer {
 

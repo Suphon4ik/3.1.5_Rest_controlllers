@@ -35,7 +35,8 @@ function createUser() {
         country: document.getElementById("newCountry").value,
         car: document.getElementById("newCar").value,
         password: document.getElementById("newPassword").value,
-        roles: Array.from(document.getElementById("roleNew").selectedOptions).map(opt => ({id: parseInt(opt.value)}))
+        roles: Array.from(document.getElementById("roleNew").selectedOptions)
+            .map(opt => ({id: parseInt(opt.value)}))
     };
 
     fetch("/api/admin/new", {
@@ -51,7 +52,8 @@ function createUser() {
             loadUsers(); // Обновляем таблицу пользователей
             document.getElementById("createUserForm").reset(); // Очищаем форму
 
-            let usersTableTab = new bootstrap.Tab(document.querySelector("#usersTable-tab"));
+            let usersTableTab =
+                new bootstrap.Tab(document.querySelector("#usersTable-tab"));
             usersTableTab.show();
         })
         .catch(error => console.error("Error creating user:", error));

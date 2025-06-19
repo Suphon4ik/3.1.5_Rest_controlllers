@@ -19,7 +19,8 @@ public class RoleRepositoryImpl implements RoleRepository {
     public Optional<Role> findByName(String roleName) {
 
         try {
-            Role role = entityManager.createQuery("SELECT r FROM Role r WHERE r.name=:name", Role.class)
+            Role role = entityManager.createQuery(
+                    "SELECT r FROM Role r WHERE r.name=:name", Role.class)
                     .setParameter("name", roleName)
                     .getSingleResult();
             return Optional.ofNullable(role);
